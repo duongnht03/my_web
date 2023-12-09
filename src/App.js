@@ -1,54 +1,52 @@
-import './App.css';
-import User from './User/User';
-import Nav from './Nav/Nav';
-import useWebSocket from 'react-use-websocket';
-import { useState } from 'react';
-import { WS_URL } from './const'
+import "./App.css";
+import User from "./User/User";
+import Nav from "./Nav/Nav";
+import ParkingTable from "./ParkingTable/ParkingTable";
+import { useEffect, useState } from "react";
+import { WS_URL } from "./const";
+import useWebSocket, { ReadyState } from "react-use-websocket";
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
-// const WS_URL = 'ws://localhost:8080/ws';
 export default function App() {
-  useWebSocket(WS_URL, {
-    onOpen: () => {
-      console.log('WebSocket connection established.');
-    }
-  });
+    const { sendMessage, lastMessage, readyState } = useWebSocket(WS_URL);
+    const [data, setData] = useState([]);
 
-  return <>
-    <Nav />
-    <User />
-  </>
+    useEffect(() => {
+        if (lastMessage !== null) {
+            console.log(lastMessage);
+            const message = JSON.parse(lastMessage.data);
+            setData(prevData => [...prevData, message]);
+
+            if (message.totalCost) {
+                // Tạo thông điệp mới để gửi lên máy chủ
+                const paymentDoneMessage = JSON.stringify({
+                    type: "payment-done",
+                    uid: message.uid
+                });
+                // Gửi thông điệp lên máy chủ
+                sendMessage(paymentDoneMessage);
+            }
+        }
+    }, [lastMessage, sendMessage]);
+
+    const connectionStatus = {
+        [ReadyState.CONNECTING]: "Connecting",
+        [ReadyState.OPEN]: "Open",
+        [ReadyState.CLOSING]: "Closing",
+        [ReadyState.CLOSED]: "Closed",
+        [ReadyState.UNINSTANTIATED]: "Uninstantiated",
+    }[readyState];
+
+    return (
+        <Router>
+            <div className="box">
+                <Nav />
+                <Routes>
+                    <Route path="/user" element={<User data={data} />} />
+                    <Route path="/parking" element={<ParkingTable />} />
+                    {/* Các Route khác nếu cần */}
+                </Routes>
+            </div>
+        </Router>
+    );
 }
-
-// client.js
-const socket = new WebSocket(WS_URL);
-
-socket.addEventListener('open', function (event) {
-  socket.send('Hello Server!');
-});
-
-socket.addEventListener('message', function (event) {
-  console.log('Message from server: ', event.data);
-});
-
-// socket.on('open', function open() {
-//   socket.send(JSON.stringify({
-//     "type": "new user going in",
-//     "uid": "<String>",
-//     "goInTimestamp": "<String>"
-//   }));
-
-//   socket.send(JSON.stringify({
-//     "type": "slot-update",
-//     "slotId": true,
-//     "status": "<String>"
-//   }));
-
-//   socket.send(JSON.stringify({
-//     "type": "user leaving",
-//     "uid": "<String>"
-//   }));
-// });
-
-// socket.on('message', function incoming(data) {
-//   console.log(data);
-// });
