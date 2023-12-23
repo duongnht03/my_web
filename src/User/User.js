@@ -18,11 +18,11 @@ export default function User({ data }) {
                 <tbody>
                     {data && data.map((item, index) => (
                         <tr key={index}>
-                            <td>{item.uid}</td>
-                            <td>{item.goIn ? "Xe vào" : "Xe ra"}</td>
-                            <td>{item.goInTimestamp}</td>
-                            <td>{item.goOutTimestamp}</td>
-                            <td>{item.totalCost}</td>
+                            <td>{item.data.uid}</td>
+                            <td>{item.data.goIn ? "Xe vào" : "Xe ra"}</td>
+                            <td>{item.data.goInTS}</td>
+                            <td>{item.data.goOutTS}</td>
+                            <td>{item.data.totalCost}</td>
                         </tr>
                     ))}
                 </tbody>

@@ -15,13 +15,13 @@ export default function App() {
         if (lastMessage !== null) {
             console.log(lastMessage);
             const message = JSON.parse(lastMessage.data);
-            setData(prevData => [...prevData, message]);
+            setData(message.type === "user-go-out" ? prevData => [...prevData] : prevData => [...prevData, message]);
 
             if (message.totalCost) {
                 // Tạo thông điệp mới để gửi lên máy chủ
                 const paymentDoneMessage = JSON.stringify({
                     type: "payment-done",
-                    uid: message.uid
+                    data: { uid: message.uid }
                 });
                 // Gửi thông điệp lên máy chủ
                 sendMessage(paymentDoneMessage);
